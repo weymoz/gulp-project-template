@@ -11,8 +11,9 @@ const concat = require('gulp-concat');
 const sourcemaps = require('gulp-sourcemaps');
 
 const SCSS_PATH = 'src/scss';
-const HTML_PATH = 'src/index.html';
+const HTML_PATH = 'src';
 const DIST_PATH = 'docs';
+const IMG_PATH = 'src/img';
 
 function css() {
   return src([
@@ -34,17 +35,22 @@ function watchScss() {
 }
 
 function html() {
-  return src(HTML_PATH).pipe(dest(DIST_PATH));
+  return src(`${HTML_PATH}/*.html`)
+    .pipe(dest(DIST_PATH));
 }
 
 function watchHtml() {
-  return watch(HTML_PATH, html)
-    .on('change', browsersync.reload)
+  return watch(`${HTML_PATH}/*.html`, html)
+    .on('change', browsersync.reload);
 }
 
+function copyImg() {
+  return src(`${IMG_PATH}/*.jpg`, {base: HTML_PATH})
+    .pipe(dest(DIST_PATH));
+}
 
 function serve() {
- return browsersync.init({
+  return browsersync.init({
     server: DIST_PATH,
     browser: '/usr/bin/google-chrome-stable',
   });
@@ -54,5 +60,10 @@ function clean() {
   return del(DIST_PATH);
 }
 
-exports.default = series(clean, html, css, 
-  parallel(watchHtml, watchScss, serve))
+exports.default = series(
+  clean,
+  html,
+  css,
+  copyImg,
+  parallel(watchHtml, watchScss, serve),
+);
